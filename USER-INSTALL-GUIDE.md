@@ -1,5 +1,13 @@
 # OSOYOO DSI Panel Driver - Installation Guide
 
+**⚠️ This guide is outdated. Please use the current installation instructions:**
+
+👉 **[INSTALL-INSTRUCTIONS.md](INSTALL-INSTRUCTIONS.md)** - Complete, up-to-date installation guide
+
+---
+
+# Legacy Installation Guide (For Reference Only)
+
 Easy installation guide for OSOYOO 7" and 10.1" DSI touchscreen panels on Raspberry Pi.
 
 ## What's New?
