@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with dkms
+
+override_dh_install:
+	# Install source files for DKMS
+	install -D -m 644 osoyoo-panel-dsi.c debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/osoyoo-panel-dsi.c
+	install -D -m 644 osoyoo-panel-regulator.c debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/osoyoo-panel-regulator.c
+	install -D -m 644 Makefile debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/Makefile
+	install -D -m 644 dkms.conf debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/dkms.conf
+
+	# Install device tree overlays source files
+	install -D -m 644 osoyoo-panel-dsi-7inch.dts debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/osoyoo-panel-dsi-7inch.dts
+	install -D -m 644 osoyoo-panel-dsi-10inch.dts debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/osoyoo-panel-dsi-10inch.dts
+
+override_dh_auto_configure:
+override_dh_auto_build:
+override_dh_auto_test:
+override_dh_auto_install:
+override_dh_auto_clean:

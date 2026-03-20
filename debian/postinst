@@ -1,0 +1,60 @@
+#!/bin/bash
+set -e
+
+PACKAGE_NAME="osoyoo-dsi-panel"
+PACKAGE_VERSION="1.0"
+
+case "$1" in
+    configure)
+        # Add module to DKMS
+        dkms add -m ${PACKAGE_NAME} -v ${PACKAGE_VERSION} || true
+
+        # Build module for current kernel
+        dkms build -m ${PACKAGE_NAME} -v ${PACKAGE_VERSION} || true
+
+        # Install module
+        dkms install -m ${PACKAGE_NAME} -v ${PACKAGE_VERSION} || true
+
+        # Compile and install device tree overlays
+        if [ -f /usr/src/${PACKAGE_NAME}-${PACKAGE_VERSION}/osoyoo-panel-dsi-7inch.dts ]; then
+            dtc -I dts -O dtb -o /tmp/osoyoo-panel-dsi-7inch.dtbo \
+                /usr/src/${PACKAGE_NAME}-${PACKAGE_VERSION}/osoyoo-panel-dsi-7inch.dts
+
+            # Create overlays directory if it doesn't exist
+            mkdir -p /boot/overlays /boot/firmware/overlays
+
+            # Copy to both possible locations (depends on Raspberry Pi OS version)
+            cp /tmp/osoyoo-panel-dsi-7inch.dtbo /boot/overlays/ 2>/dev/null || true
+            cp /tmp/osoyoo-panel-dsi-7inch.dtbo /boot/firmware/overlays/ 2>/dev/null || true
+            rm /tmp/osoyoo-panel-dsi-7inch.dtbo
+        fi
+
+        if [ -f /usr/src/${PACKAGE_NAME}-${PACKAGE_VERSION}/osoyoo-panel-dsi-10inch.dts ]; then
+            dtc -I dts -O dtb -o /tmp/osoyoo-panel-dsi-10inch.dtbo \
+                /usr/src/${PACKAGE_NAME}-${PACKAGE_VERSION}/osoyoo-panel-dsi-10inch.dts
+
+            mkdir -p /boot/overlays /boot/firmware/overlays
+            cp /tmp/osoyoo-panel-dsi-10inch.dtbo /boot/overlays/ 2>/dev/null || true
+            cp /tmp/osoyoo-panel-dsi-10inch.dtbo /boot/firmware/overlays/ 2>/dev/null || true
+            rm /tmp/osoyoo-panel-dsi-10inch.dtbo
+        fi
+
+        echo "OSOYOO DSI Panel driver installed successfully!"
+        echo ""
+        echo "To enable the driver, add one of the following lines to /boot/config.txt"
+        echo "or /boot/firmware/config.txt (depending on your Raspberry Pi OS version):"
+        echo ""
+        echo "For 7\" panel:"
+        echo "  dtoverlay=osoyoo-panel-dsi-7inch"
+        echo ""
+        echo "For 10.1\" panel:"
+        echo "  dtoverlay=osoyoo-panel-dsi-10inch"
+        echo "  (or for 4-lane mode: dtoverlay=osoyoo-panel-dsi-10inch,4lane)"
+        echo ""
+        echo "Then reboot your Raspberry Pi."
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0
