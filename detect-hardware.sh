@@ -11,26 +11,23 @@ detect_pi_model() {
         local device_model=$(cat /proc/device-tree/model | tr -d '\0')
 
         case "$device_model" in
-            *"Raspberry Pi 5"*)
+            *"Raspberry Pi 5"*|*"Raspberry Pi Compute Module 5"*)
                 model="pi5"
                 ;;
-            *"Raspberry Pi 4"*)
+            *"Raspberry Pi 4"*|*"Raspberry Pi Compute Module 4"*)
                 model="pi4"
                 ;;
-            *"Raspberry Pi 3"*)
+            *"Raspberry Pi 3"*|*"Raspberry Pi Compute Module 3"*)
                 model="pi3"
-                ;;
-            *"Raspberry Pi Compute Module 4"*)
-                model="pi4"
                 ;;
             *)
                 # Try /proc/cpuinfo as fallback
-                if grep -q "BCM2711" /proc/cpuinfo; then
+                if grep -q "BCM2712" /proc/cpuinfo; then
+                    model="pi5"
+                elif grep -q "BCM2711" /proc/cpuinfo; then
                     model="pi4"
                 elif grep -q "BCM2837" /proc/cpuinfo; then
                     model="pi3"
-                elif grep -q "BCM2712" /proc/cpuinfo; then
-                    model="pi5"
                 else
                     model="unknown"
                 fi

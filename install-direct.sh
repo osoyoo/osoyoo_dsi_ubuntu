@@ -33,13 +33,13 @@ detect_hardware() {
         local device_model=$(cat /proc/device-tree/model | tr -d '\0')
 
         case "$device_model" in
-            *"Raspberry Pi 5"*)
+            *"Raspberry Pi 5"*|*"Raspberry Pi Compute Module 5"*)
                 pi_model="pi5"
                 ;;
             *"Raspberry Pi 4"*|*"Raspberry Pi Compute Module 4"*)
                 pi_model="pi4"
                 ;;
-            *"Raspberry Pi 3"*)
+            *"Raspberry Pi 3"*|*"Raspberry Pi Compute Module 3"*)
                 pi_model="pi3"
                 ;;
             *)
@@ -71,7 +71,23 @@ detect_hardware() {
 # Install dependencies
 echo "Installing dependencies..."
 apt-get update
-apt-get install -y dkms device-tree-compiler raspberrypi-kernel-headers
+apt-get install -y dkms device-tree-compiler
+
+# Install kernel headers based on distribution
+KERNEL_VERSION=$(uname -r)
+if apt-cache search raspberrypi-kernel-headers | grep -q raspberrypi-kernel-headers; then
+    # Raspberry Pi OS
+    echo "Detected Raspberry Pi OS - installing raspberrypi-kernel-headers..."
+    apt-get install -y raspberrypi-kernel-headers
+elif apt-cache search linux-headers-${KERNEL_VERSION} | grep -q linux-headers-${KERNEL_VERSION}; then
+    # Standard Debian/Ubuntu
+    echo "Detected Debian/Ubuntu - installing linux-headers-${KERNEL_VERSION}..."
+    apt-get install -y linux-headers-${KERNEL_VERSION}
+else
+    echo "WARNING: Could not find kernel headers package."
+    echo "         Attempting to install generic linux-headers..."
+    apt-get install -y linux-headers-$(uname -r) || apt-get install -y linux-headers-generic || true
+fi
 
 echo "✓ Dependencies installed"
 echo ""

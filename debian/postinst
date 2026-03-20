@@ -17,13 +17,13 @@ detect_hardware() {
         local device_model=$(cat /proc/device-tree/model | tr -d '\0')
 
         case "$device_model" in
-            *"Raspberry Pi 5"*)
+            *"Raspberry Pi 5"*|*"Raspberry Pi Compute Module 5"*)
                 pi_model="pi5"
                 ;;
             *"Raspberry Pi 4"*|*"Raspberry Pi Compute Module 4"*)
                 pi_model="pi4"
                 ;;
-            *"Raspberry Pi 3"*)
+            *"Raspberry Pi 3"*|*"Raspberry Pi Compute Module 3"*)
                 pi_model="pi3"
                 ;;
             *)
@@ -113,8 +113,12 @@ case "$1" in
         if dkms build -m ${PACKAGE_NAME} -v ${PACKAGE_VERSION}; then
             echo "Build successful!"
         else
-            echo "ERROR: Build failed. Please check your kernel headers:"
-            echo "       sudo apt-get install raspberrypi-kernel-headers"
+            echo "ERROR: Build failed. Please install kernel headers:"
+            if apt-cache search raspberrypi-kernel-headers | grep -q raspberrypi-kernel-headers; then
+                echo "       sudo apt-get install raspberrypi-kernel-headers"
+            else
+                echo "       sudo apt-get install linux-headers-\$(uname -r)"
+            fi
             exit 1
         fi
 
