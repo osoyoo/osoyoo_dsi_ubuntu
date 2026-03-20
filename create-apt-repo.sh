@@ -23,9 +23,9 @@ fi
 # Check for required tools
 echo "Checking required tools..."
 if ! command -v dpkg-scanpackages &> /dev/null; then
-    echo "Installing dpkg-dev..."
+    echo "Installing required packages..."
     sudo apt-get update
-    sudo apt-get install -y dpkg-dev
+    sudo apt-get install -y dpkg-dev dh-dkms
 fi
 
 # Build the .deb package first

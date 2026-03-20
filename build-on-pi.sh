@@ -39,7 +39,7 @@ if [ ! -z "$MISSING" ]; then
     echo ""
     echo "Installing required packages..."
     sudo apt-get update
-    sudo apt-get install -y build-essential debhelper dkms device-tree-compiler
+    sudo apt-get install -y build-essential debhelper dh-dkms dkms device-tree-compiler
 fi
 
 echo "✓ All required tools installed"
