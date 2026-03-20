@@ -4,15 +4,25 @@
 	dh $@ --with dkms
 
 override_dh_install:
-	# Install source files for DKMS
-	install -D -m 644 osoyoo-panel-dsi.c debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/osoyoo-panel-dsi.c
-	install -D -m 644 osoyoo-panel-regulator.c debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/osoyoo-panel-regulator.c
+	# Install common files for DKMS
 	install -D -m 644 Makefile debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/Makefile
 	install -D -m 644 dkms.conf debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/dkms.conf
 
-	# Install device tree overlays source files
-	install -D -m 644 osoyoo-panel-dsi-7inch.dts debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/osoyoo-panel-dsi-7inch.dts
-	install -D -m 644 osoyoo-panel-dsi-10inch.dts debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/osoyoo-panel-dsi-10inch.dts
+	# Install model-specific source directories
+	# Pi 3
+	install -d debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/src/pi3
+	install -m 644 src/pi3/*.c debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/src/pi3/
+	install -m 644 src/pi3/*.dts debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/src/pi3/
+
+	# Pi 4
+	install -d debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/src/pi4
+	install -m 644 src/pi4/*.c debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/src/pi4/
+	install -m 644 src/pi4/*.dts debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/src/pi4/
+
+	# Pi 5
+	install -d debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/src/pi5
+	install -m 644 src/pi5/*.c debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/src/pi5/
+	install -m 644 src/pi5/*.dts debian/osoyoo-dsi-panel-dkms/usr/src/osoyoo-dsi-panel-1.0/src/pi5/
 
 override_dh_auto_configure:
 override_dh_auto_build:
