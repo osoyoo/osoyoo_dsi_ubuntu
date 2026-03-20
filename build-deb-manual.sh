@@ -30,13 +30,14 @@ Section: kernel
 Priority: optional
 Architecture: all
 Depends: dkms, device-tree-compiler
-Maintainer: OSOYOO <support@osoyoo.com>
-Description: OSOYOO DSI Panel Driver (DKMS)
+Maintainer: OSOYOO <support@osoyoo.info>
+Description: OSOYOO DSI Panel Driver (DKMS) with Hardware Detection
  Kernel driver for OSOYOO 720x1280 DSI touchscreen panels
  designed for Raspberry Pi. Supports 7" and 10.1" variants.
  .
- This package uses DKMS to automatically rebuild the driver
- modules when the kernel is upgraded.
+ This package automatically detects your Raspberry Pi model (Pi 3/4/5)
+ and installs the appropriate driver variant. Uses DKMS to automatically
+ rebuild the driver modules when the kernel is upgraded.
 EOF
 
 # Copy postinst script
@@ -51,13 +52,20 @@ chmod 755 "${BUILD_DIR}/DEBIAN/prerm"
 cp debian/postrm "${BUILD_DIR}/DEBIAN/postrm"
 chmod 755 "${BUILD_DIR}/DEBIAN/postrm"
 
-# Copy source files
-cp osoyoo-panel-dsi.c "${BUILD_DIR}/usr/src/osoyoo-dsi-panel-1.0/"
-cp osoyoo-panel-regulator.c "${BUILD_DIR}/usr/src/osoyoo-dsi-panel-1.0/"
+# Copy common files
 cp Makefile "${BUILD_DIR}/usr/src/osoyoo-dsi-panel-1.0/"
 cp dkms.conf "${BUILD_DIR}/usr/src/osoyoo-dsi-panel-1.0/"
-cp osoyoo-panel-dsi-7inch.dts "${BUILD_DIR}/usr/src/osoyoo-dsi-panel-1.0/"
-cp osoyoo-panel-dsi-10inch.dts "${BUILD_DIR}/usr/src/osoyoo-dsi-panel-1.0/"
+
+# Copy model-specific source directories
+echo "Copying model-specific source files..."
+for model in pi3 pi4 pi5; do
+    if [ -d "src/$model" ]; then
+        mkdir -p "${BUILD_DIR}/usr/src/osoyoo-dsi-panel-1.0/src/$model"
+        cp src/$model/*.c "${BUILD_DIR}/usr/src/osoyoo-dsi-panel-1.0/src/$model/" 2>/dev/null || true
+        cp src/$model/*.dts "${BUILD_DIR}/usr/src/osoyoo-dsi-panel-1.0/src/$model/" 2>/dev/null || true
+        echo "  ✓ Copied $model sources"
+    fi
+done
 
 # Remove any macOS metadata files
 find "${BUILD_DIR}" -name "._*" -delete 2>/dev/null || true
@@ -87,8 +95,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "You'll need to convert this to .deb on a Linux system."
 
         # Create data and control tarballs (excluding macOS metadata)
-        (cd "${BUILD_DIR}" && tar --exclude='._*' --exclude='.DS_Store' -czf ../data.tar.gz --exclude='DEBIAN' .)
-        (cd "${BUILD_DIR}/DEBIAN" && tar --exclude='._*' --exclude='.DS_Store' -czf ../../control.tar.gz .)
+        # Note: Using standard tar format for maximum compatibility
+        (cd "${BUILD_DIR}" && COPYFILE_DISABLE=1 tar --exclude='._*' --exclude='.DS_Store' -czf ../data.tar.gz --exclude='DEBIAN' .)
+        (cd "${BUILD_DIR}/DEBIAN" && COPYFILE_DISABLE=1 tar --exclude='._*' --exclude='.DS_Store' -czf ../../control.tar.gz .)
 
         # Create debian-binary
         echo "2.0" > debian-binary
