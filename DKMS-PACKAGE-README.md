@@ -55,7 +55,7 @@ sudo apt-get install -f
 3. Users download and install:
 
 ```bash
-wget https://github.com/YOUR-USERNAME/YOUR-REPO/releases/download/v1.0/osoyoo-dsi-panel-dkms_1.0-1_all.deb
+wget https://github.com/osoyoo/osoyoo-dsi-panel/releases/download/v1.0/osoyoo-dsi-panel-dkms_1.0-1_all.deb
 sudo dpkg -i osoyoo-dsi-panel-dkms_1.0-1_all.deb
 sudo apt-get install -f
 ```
@@ -100,7 +100,7 @@ For automatic updates via `apt upgrade`, create a personal APT repository:
 5. **Sign the repository (optional but recommended):**
    ```bash
    gpg --gen-key  # Create a GPG key if you don't have one
-   gpg --armor --export YOUR-EMAIL > public.key
+   gpg --armor --export support@osoyoo.info > public.key
    gpg --clearsign -o InRelease Release
    ```
 
@@ -111,12 +111,12 @@ For automatic updates via `apt upgrade`, create a personal APT repository:
 
    ```bash
    # Add repository
-   echo "deb [trusted=yes] https://YOUR-USERNAME.github.io/YOUR-REPO/ ./" | \
+   echo "deb [trusted=yes] https://osoyoo.github.io/osoyoo-dsi-panel/ ./" | \
        sudo tee /etc/apt/sources.list.d/osoyoo.list
 
    # Or with GPG signature verification:
-   wget -qO - https://YOUR-USERNAME.github.io/YOUR-REPO/public.key | sudo apt-key add -
-   echo "deb https://YOUR-USERNAME.github.io/YOUR-REPO/ ./" | \
+   wget -qO - https://osoyoo.github.io/osoyoo-dsi-panel/public.key | sudo apt-key add -
+   echo "deb https://osoyoo.github.io/osoyoo-dsi-panel/ ./" | \
        sudo tee /etc/apt/sources.list.d/osoyoo.list
 
    # Install
@@ -235,5 +235,6 @@ ls -l /boot/firmware/overlays/osoyoo*
 ## Support
 
 For issues or questions:
-- GitHub Issues: [Your repository URL]
-- Documentation: [Your docs URL]
+- GitHub Issues: https://github.com/osoyoo/osoyoo-dsi-panel/issues
+- Email: support@osoyoo.info
+- Documentation: https://github.com/osoyoo/osoyoo-dsi-panel

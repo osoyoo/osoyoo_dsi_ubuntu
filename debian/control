@@ -1,7 +1,7 @@
 Source: osoyoo-dsi-panel-dkms
 Section: kernel
 Priority: optional
-Maintainer: Your Name <your.email@example.com>
+Maintainer: OSOYOO <support@osoyoo.info>
 Build-Depends: debhelper (>= 10), dkms
 Standards-Version: 4.1.2
 

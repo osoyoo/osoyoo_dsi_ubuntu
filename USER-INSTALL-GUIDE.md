@@ -16,8 +16,8 @@ This driver now uses **DKMS** (Dynamic Kernel Module Support), which means:
 If available from a repository:
 
 ```bash
-# Add the OSOYOO repository (replace with actual repository URL)
-echo "deb [trusted=yes] https://YOUR-REPO-URL/ ./" | \
+# Add the OSOYOO repository (if available via APT)
+echo "deb [trusted=yes] https://osoyoo.github.io/osoyoo-dsi-panel/ ./" | \
     sudo tee /etc/apt/sources.list.d/osoyoo.list
 
 # Update and install
@@ -30,8 +30,8 @@ sudo apt install osoyoo-dsi-panel-dkms
 Download and install the `.deb` package:
 
 ```bash
-# Download the package (replace URL with actual download link)
-wget https://github.com/YOUR-USERNAME/YOUR-REPO/releases/download/v1.0/osoyoo-dsi-panel-dkms_1.0-1_all.deb
+# Download the package
+wget https://github.com/osoyoo/osoyoo-dsi-panel/releases/download/v1.0/osoyoo-dsi-panel-dkms_1.0-1_all.deb
 
 # Install the package
 sudo dpkg -i osoyoo-dsi-panel-dkms_1.0-1_all.deb
