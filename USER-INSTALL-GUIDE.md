@@ -5,27 +5,13 @@ Easy installation guide for OSOYOO 7" and 10.1" DSI touchscreen panels on Raspbe
 ## What's New?
 
 This driver now uses **DKMS** (Dynamic Kernel Module Support), which means:
-- ✅ **Automatic updates** - Driver rebuilds automatically when kernel updates
+- ✅ **Automatic rebuilds** - Driver rebuilds automatically when kernel updates
 - ✅ **No manual compilation** - Install once and forget
-- ✅ **Easy installation** - Simple `apt install` command
+- ✅ **Easy installation** - Simple .deb package installation
 
 ## Installation
 
-### Method 1: Using APT (Recommended)
-
-If available from a repository:
-
-```bash
-# Add the OSOYOO repository (if available via APT)
-echo "deb [trusted=yes] https://osoyoo.github.io/osoyoo-dsi-panel/ ./" | \
-    sudo tee /etc/apt/sources.list.d/osoyoo.list
-
-# Update and install
-sudo apt update
-sudo apt install osoyoo-dsi-panel-dkms
-```
-
-### Method 2: Manual Installation
+### Recommended Method: Direct .deb Installation
 
 Download and install the `.deb` package:
 
@@ -39,6 +25,8 @@ sudo dpkg -i osoyoo-dsi-panel-dkms_1.0-1_all.deb
 # Install dependencies if needed
 sudo apt-get install -f
 ```
+
+**Note**: An APT repository for `sudo apt install` is not yet set up. For now, use the direct .deb download method above. See [DKMS-PACKAGE-README.md](DKMS-PACKAGE-README.md) for instructions on setting up an APT repository if needed.
 
 ## Configuration
 
