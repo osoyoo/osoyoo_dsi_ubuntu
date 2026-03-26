@@ -1,0 +1,20 @@
+Package: osoyoo-dsi-panel-dkms
+Version: 1.0-1
+Architecture: all
+Maintainer: OSOYOO <support@osoyoo.info>
+Installed-Size: 138
+Depends: dkms, device-tree-compiler
+Filename: pool/main/osoyoo-dsi-panel-dkms_1.0-1_all.deb
+Size: 10452
+MD5sum: 5cd9f71cab04aaf62f7c2fa48eaf8687
+SHA1: 241d01b2dc3f1fdbf52826d234e0df29e931b884
+SHA256: 2cde4809d545e07a91f733848748b17570388be62685cdef2c36f7099e9f0b5c
+Section: kernel
+Priority: optional
+Description: OSOYOO DSI Panel Driver (DKMS)
+ Kernel driver for OSOYOO 720x1280 DSI touchscreen panels
+ designed for Raspberry Pi. Supports 7" and 10.1" variants.
+ .
+ This package uses DKMS to automatically rebuild the driver
+ modules when the kernel is upgraded.
+
