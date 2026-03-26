@@ -188,8 +188,16 @@ if [ -f "${SRC_BASE}/osoyoo-panel-dsi-7inch.dts" ]; then
     mkdir -p /boot/overlays /boot/firmware/overlays 2>/dev/null || true
     cp /tmp/osoyoo-panel-dsi-7inch.dtbo /boot/overlays/ 2>/dev/null || true
     cp /tmp/osoyoo-panel-dsi-7inch.dtbo /boot/firmware/overlays/ 2>/dev/null || true
+
+    # Ubuntu uses os_prefix=current/ so also copy to current/overlays
+    if [ -d /boot/firmware/current ]; then
+        mkdir -p /boot/firmware/current/overlays 2>/dev/null || true
+        cp /tmp/osoyoo-panel-dsi-7inch.dtbo /boot/firmware/current/overlays/ 2>/dev/null || true
+        echo "  ✓ 7-inch panel overlay installed (including Ubuntu current/ path)"
+    else
+        echo "  ✓ 7-inch panel overlay installed"
+    fi
     rm /tmp/osoyoo-panel-dsi-7inch.dtbo
-    echo "  ✓ 7-inch panel overlay installed"
 fi
 
 if [ -f "${SRC_BASE}/osoyoo-panel-dsi-10inch.dts" ]; then
@@ -199,8 +207,16 @@ if [ -f "${SRC_BASE}/osoyoo-panel-dsi-10inch.dts" ]; then
     mkdir -p /boot/overlays /boot/firmware/overlays 2>/dev/null || true
     cp /tmp/osoyoo-panel-dsi-10inch.dtbo /boot/overlays/ 2>/dev/null || true
     cp /tmp/osoyoo-panel-dsi-10inch.dtbo /boot/firmware/overlays/ 2>/dev/null || true
+
+    # Ubuntu uses os_prefix=current/ so also copy to current/overlays
+    if [ -d /boot/firmware/current ]; then
+        mkdir -p /boot/firmware/current/overlays 2>/dev/null || true
+        cp /tmp/osoyoo-panel-dsi-10inch.dtbo /boot/firmware/current/overlays/ 2>/dev/null || true
+        echo "  ✓ 10-inch panel overlay installed (including Ubuntu current/ path)"
+    else
+        echo "  ✓ 10-inch panel overlay installed"
+    fi
     rm /tmp/osoyoo-panel-dsi-10inch.dtbo
-    echo "  ✓ 10-inch panel overlay installed"
 fi
 
 echo ""
@@ -217,13 +233,23 @@ echo "1. Edit your config file:"
 echo "   sudo nano /boot/firmware/config.txt"
 echo "   (or /boot/config.txt on older systems)"
 echo ""
-echo "2. Add ONE of the following lines:"
+echo "2. Add the following configuration:"
+echo ""
+if [ "$OS_DISTRO" = "ubuntu" ]; then
+    echo "   For Ubuntu, make sure to set:"
+    echo "     display_auto_detect=0"
+    echo "     dtparam=i2c_arm_baudrate=100000"
+    echo ""
+fi
+echo "   Then add ONE of these overlay lines:"
 echo "   For 7\" panel:"
 echo "     dtoverlay=osoyoo-panel-dsi-7inch"
 echo ""
-echo "   For 10.1\" panel:"
-echo "     dtoverlay=osoyoo-panel-dsi-10inch"
-echo "   (or for 4-lane mode: dtoverlay=osoyoo-panel-dsi-10inch,4lane)"
+echo "   For 10.1\" panel on DSI1 (CM5 most common):"
+echo "     dtoverlay=osoyoo-panel-dsi-10inch,dsi1,4lane"
+echo ""
+echo "   For 10.1\" panel on DSI0:"
+echo "     dtoverlay=osoyoo-panel-dsi-10inch,dsi0,4lane"
 echo ""
 echo "3. Reboot your Raspberry Pi:"
 echo "   sudo reboot"

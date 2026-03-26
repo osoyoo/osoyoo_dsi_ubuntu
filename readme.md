@@ -1,235 +1,233 @@
-# OSOYOO DSI Panel Driver
+# OSOYOO DSI Panel Driver for Ubuntu
 
-Kernel driver for OSOYOO 720x1280 DSI touchscreen panels for Raspberry Pi.
+Pre-configured driver for OSOYOO DSI panels on Ubuntu 24.04+ for Raspberry Pi 5 / CM5.
 
-**Supported Models:**
-- 7-inch DSI touchscreen (720x1280)
-- 10.1-inch DSI touchscreen (720x1280)
+**This repository contains Ubuntu-compatible driver sources with all necessary patches already applied. No manual code editing required!**
 
-**Compatible Hardware:**
-- Raspberry Pi 3 / Compute Module 3
-- Raspberry Pi 4 / Compute Module 4
-- Raspberry Pi 5 / Compute Module 5
+## Supported Hardware
 
----
+- **Panels**: OSOYOO 7" and 10.1" DSI touchscreen panels
+- **Boards**: Raspberry Pi 5, Compute Module 5
+- **OS**: Ubuntu 24.04, Ubuntu 25.10 (Questing Quokka)
+- **Kernels**: 6.8.x, 6.17.x and newer
 
-## 🚀 Quick Start
+## Features
 
-### Installation (Recommended Method)
+ Pre-patched for kernel 6.17+ GPIO API compatibility
+ Automatic Ubuntu overlay path handling (`/boot/firmware/current/overlays/`)
+ Auto-detects Ubuntu and provides correct config instructions
+ No manual code editing required
+
+## Quick Installation (3 Steps)
+
+### Step 1: Install the Driver
 
 ```bash
-# Clone the repository
-git clone https://github.com/osoyoo/osoyoo-dsi-panel.git
-cd osoyoo-dsi-panel
-
-# Install directly (no package building required)
+cd ~
+git clone https://github.com/osoyoo/osoyoo_dsi_ubuntu.git
+cd osoyoo_dsi_ubuntu
 sudo ./install-direct.sh
 ```
 
-### Configuration
+The installer will automatically:
+- Install dependencies
+- Build and install the driver
+- Copy overlays to the correct Ubuntu paths
 
-After installation, edit your config file:
+### Step 2: Configure config.txt
+
+Edit the boot configuration:
 
 ```bash
 sudo nano /boot/firmware/config.txt
-# OR on older systems:
-sudo nano /boot/config.txt
 ```
 
-Add ONE of these lines:
+Make these changes:
 
+1. **Find and change** `display_auto_detect=1` to:
+   ```
+   display_auto_detect=0
+   ```
+
+2. **Find** `dtparam=i2c_arm=on` and **add after it**:
+   ```
+   dtparam=i2c_arm_baudrate=100000
+   ```
+
+3. **Add at the end** under `[all]`:
+
+   For 10.1" panel on DSI1 (most CM5 setups):
+   ```
+   dtoverlay=osoyoo-panel-dsi-10inch,dsi1,4lane
+   ```
+
+   For 10.1" panel on DSI0:
+   ```
+   dtoverlay=osoyoo-panel-dsi-10inch,dsi0,4lane
+   ```
+
+   For 7" panel:
+   ```
+   dtoverlay=osoyoo-panel-dsi-7inch
+   ```
+
+**Example config.txt:**
 ```ini
-# For 7-inch panel:
-dtoverlay=osoyoo-panel-dsi-7inch
+[all]
+arm_64bit=1
+kernel=vmlinuz
+dtparam=i2c_arm=on
+dtparam=i2c_arm_baudrate=100000
+disable_overscan=1
+dtoverlay=vc4-kms-v3d
+display_auto_detect=0
 
-# For 10.1-inch panel:
-dtoverlay=osoyoo-panel-dsi-10inch
-
-# For 10.1-inch panel (4-lane mode):
-dtoverlay=osoyoo-panel-dsi-10inch,4lane
+[all]
+dtoverlay=osoyoo-panel-dsi-10inch,dsi1,4lane
 ```
 
-Then reboot:
+Save and exit (Ctrl+X, Y, Enter).
+
+### Step 3: Reboot
+
 ```bash
 sudo reboot
 ```
 
----
+After reboot, your DSI screen should display the Ubuntu desktop! <�
 
-## 📚 Documentation
+## Verification
 
-- **[INSTALL-INSTRUCTIONS.md](INSTALL-INSTRUCTIONS.md)** - Complete installation guide (START HERE)
-- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Fix common issues (screen not displaying, etc.)
-- **[HARDWARE-DETECTION-README.md](HARDWARE-DETECTION-README.md)** - How hardware auto-detection works
-- **[APT-REPOSITORY-SETUP.md](APT-REPOSITORY-SETUP.md)** - Setting up APT repository
-- **[DKMS-PACKAGE-README.md](DKMS-PACKAGE-README.md)** - DKMS package details
-
----
-
-## ✨ Features
-
-- ✅ **Automatic hardware detection** - Detects your Pi model (3/4/5) automatically
-- ✅ **DKMS support** - Driver automatically rebuilds on kernel updates
-- ✅ **Model-specific drivers** - Optimized drivers for each Pi generation
-- ✅ **Easy installation** - Simple script-based installation
-- ✅ **APT repository** - Optional installation via `sudo apt install`
-- ✅ **Multiple panel sizes** - Supports both 7" and 10.1" displays
-
----
-
-## 🛠️ Installation Methods
-
-### Method 1: Direct Installation (Fastest)
+Check if the driver loaded successfully:
 
 ```bash
-git clone https://github.com/osoyoo/osoyoo-dsi-panel.git
-cd osoyoo-dsi-panel
+lsmod | grep osoyoo
+```
+
+You should see:
+```
+osoyoo_panel_dsi
+osoyoo_panel_regulator
+```
+
+## Troubleshooting
+
+### Screen shows nothing (black screen)
+
+1. Check if config.txt has the correct settings:
+   ```bash
+   grep -E "display_auto_detect|dtoverlay=osoyoo|i2c_arm_baudrate" /boot/firmware/config.txt
+   ```
+
+2. Check kernel messages:
+   ```bash
+   sudo dmesg | grep -i osoyoo
+   ```
+
+3. Verify overlay is in place:
+   ```bash
+   ls -la /boot/firmware/current/overlays/osoyoo*
+   ```
+
+### After kernel update, screen stops working
+
+When Ubuntu updates the kernel, reinstall the driver:
+
+```bash
+cd ~/osoyoo_dsi_ubuntu
+sudo dkms remove osoyoo-dsi-panel/1.0 --all
 sudo ./install-direct.sh
+sudo reboot
 ```
 
-**Pros:** Fastest, no package building, works everywhere
-**Cons:** Manual updates (re-run script after git pull)
+### I2C errors in dmesg
 
-### Method 2: APT Repository
-
-```bash
-echo "deb [trusted=yes] https://osoyoo.github.io/osoyoo-dsi-panel/ ./" | \
-    sudo tee /etc/apt/sources.list.d/osoyoo.list
-
-sudo apt update
-sudo apt install osoyoo-dsi-panel-dkms
+Try slower I2C speed in config.txt:
+```
+dtparam=i2c_arm_baudrate=50000
 ```
 
-**Pros:** Auto-updates via `apt upgrade`
-**Cons:** Initial setup required
+## What's Different from Raspberry Pi OS?
 
-### Method 3: Build .deb Package
+This repository is specifically configured for Ubuntu:
 
-```bash
-git clone https://github.com/osoyoo/osoyoo-dsi-panel.git
-cd osoyoo-dsi-panel
-./build-on-pi.sh
-sudo dpkg -i ../osoyoo-dsi-panel-dkms_*.deb
+| Feature | Ubuntu (This Repo) | Raspberry Pi OS |
+|---------|-------------------|-----------------|
+| Driver source | Pre-patched for kernel 6.17+ | Original source |
+| Overlay path | `/boot/firmware/current/overlays/` | `/boot/overlays/` |
+| Install script | Auto-copies to current/ path | Standard paths only |
+| Config hints | Ubuntu-specific instructions | Generic instructions |
+
+## Technical Details
+
+### Kernel 6.17 GPIO API Changes
+
+Ubuntu 25.10 uses kernel 6.17 which changed the GPIO chip API:
+
+**Old API (kernel d6.8):**
+```c
+void (*set)(struct gpio_chip *chip, unsigned offset, int value);
 ```
 
-**Pros:** Creates distributable package
-**Cons:** Requires build tools
+**New API (kernel e6.17):**
+```c
+int (*set)(struct gpio_chip *chip, unsigned offset, int value);
+```
 
-See **[INSTALL-INSTRUCTIONS.md](INSTALL-INSTRUCTIONS.md)** for detailed instructions.
+This repository includes the patch for the new API.
+
+### Ubuntu Boot Path
+
+Ubuntu uses `os_prefix=current/` in config.txt, which tells the firmware to load overlays from:
+```
+/boot/firmware/current/overlays/
+```
+
+Instead of the standard:
+```
+/boot/firmware/overlays/
+```
+
+The install script automatically handles this.
+
+## Hardware Connection
+
+### For CM5 with 10.1" panel:
+
+```
+CM5 DSI1 Port � OSOYOO 10.1" Panel DSI connector
+```
+
+Use: `dtoverlay=osoyoo-panel-dsi-10inch,dsi1,4lane`
+
+### For Pi 5 with 10.1" panel:
+
+```
+Pi 5 DSI Port � OSOYOO 10.1" Panel DSI connector
+```
+
+Use: `dtoverlay=osoyoo-panel-dsi-10inch,dsi0,4lane`
+
+## Support
+
+- **Issues**: https://github.com/osoyoo/osoyoo_dsi_ubuntu/issues
+- **Email**: support@osoyoo.info
+- **Original Repository**: https://github.com/osoyoo/osoyoo-dsi-panel
+
+## Documentation
+
+- **[UBUNTU-INSTALL-GUIDE.md](UBUNTU-INSTALL-GUIDE.md)** - Detailed installation guide with technical explanations
+
+## License
+
+GPL (same as original driver)
+
+## Credits
+
+- **Original Driver**: OSOYOO
+- **Ubuntu Compatibility**: Community contribution
+- **Testing**: Ubuntu 25.10 (Questing Quokka) on CM5
 
 ---
 
-## 🐛 Troubleshooting
-
-### Screen not displaying anything?
-
-1. **Check if modules are loaded:**
-   ```bash
-   lsmod | grep osoyoo
-   ```
-
-2. **Disable HDMI (force DSI):**
-   Add to `/boot/firmware/config.txt`:
-   ```ini
-   hdmi_ignore_hotplug=1
-   ```
-
-3. **Check kernel logs:**
-   ```bash
-   dmesg | grep -i osoyoo
-   dmesg | grep -i dsi
-   ```
-
-4. **Run diagnostics:**
-   ```bash
-   # Quick check
-   lsmod | grep osoyoo
-   dkms status osoyoo-dsi-panel
-   grep osoyoo /boot/firmware/config.txt
-   ```
-
-**See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for complete guide.**
-
----
-
-## 🔧 Manual Build (Old Method - Not Recommended)
-
-<details>
-<summary>Click to expand manual build instructions</summary>
-
-### Driver build:
-```bash
-make
-sudo cp ./osoyoo-panel-regulator.ko /lib/modules/$(uname -r)
-sudo cp ./osoyoo-panel-dsi.ko /lib/modules/$(uname -r)
-sudo depmod
-sudo modprobe osoyoo-panel-regulator
-sudo modprobe osoyoo-panel-dsi
-```
-
-### Device tree build:
-```bash
-# 7-inch
-sudo dtc -I dts -O dtb -o osoyoo-panel-dsi-7inch.dtbo osoyoo-panel-dsi-7inch.dts
-sudo cp osoyoo-panel-dsi-7inch.dtbo /boot/overlays/
-
-# 10.1-inch
-sudo dtc -I dts -O dtb -o osoyoo-panel-dsi-10inch.dtbo osoyoo-panel-dsi-10inch.dts
-sudo cp osoyoo-panel-dsi-10inch.dtbo /boot/overlays/
-```
-
-**Note:** Manual building requires rebuilding after every kernel update. Use DKMS-based installation instead.
-
-</details>
-
----
-
-## 📦 Package Structure
-
-```
-osoyoo-dsi-panel/
-├── src/
-│   ├── pi3/          # Raspberry Pi 3 specific drivers
-│   ├── pi4/          # Raspberry Pi 4 specific drivers
-│   └── pi5/          # Raspberry Pi 5 specific drivers
-├── debian/           # Debian package configuration
-├── .github/          # GitHub Actions workflows
-├── install-direct.sh # Direct installation script
-├── build-on-pi.sh    # Package build script
-├── Makefile          # Kernel module build
-├── dkms.conf         # DKMS configuration
-└── *.dts             # Device tree source files
-```
-
----
-
-## 🤝 Contributing
-
-Issues and pull requests are welcome!
-
-**Before submitting:**
-1. Test on actual hardware (Pi 3/4/5)
-2. Follow existing code style
-3. Update documentation if needed
-
----
-
-## 📄 License
-
-GPL-2.0 - See LICENSE file for details
-
----
-
-## 💬 Support
-
-- **Issues:** https://github.com/osoyoo/osoyoo-dsi-panel/issues
-- **Email:** support@osoyoo.info
-- **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-
----
-
-## 🔗 Links
-
-- **APT Repository:** https://osoyoo.github.io/osoyoo-dsi-panel/
-- **Installation Guide:** [INSTALL-INSTRUCTIONS.md](INSTALL-INSTRUCTIONS.md)
-- **Releases:** https://github.com/osoyoo/osoyoo-dsi-panel/releases
+**Note**: If you're using Raspberry Pi OS instead of Ubuntu, use the original repository: https://github.com/osoyoo/osoyoo-dsi-panel
