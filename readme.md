@@ -24,6 +24,8 @@ Pre-configured driver for OSOYOO DSI panels on Ubuntu 24.04+ for Raspberry Pi 5 
 
 ```bash
 cd ~
+sudo apt update
+sudo apt install git -y
 git clone https://github.com/osoyoo/osoyoo_dsi_ubuntu.git
 cd osoyoo_dsi_ubuntu
 sudo ./install-direct.sh
@@ -94,7 +96,7 @@ Save and exit (Ctrl+X, Y, Enter).
 sudo reboot
 ```
 
-After reboot, your DSI screen should display the Ubuntu desktop! <‰
+After reboot, your DSI screen should display the Ubuntu desktop! <â€°
 
 ## Verification
 
@@ -195,7 +197,7 @@ The install script automatically handles this.
 ### For CM5 with 10.1" panel:
 
 ```
-CM5 DSI1 Port ’ OSOYOO 10.1" Panel DSI connector
+CM5 DSI1 Port â€™ OSOYOO 10.1" Panel DSI connector
 ```
 
 Use: `dtoverlay=osoyoo-panel-dsi-10inch,dsi1,4lane`
@@ -203,7 +205,7 @@ Use: `dtoverlay=osoyoo-panel-dsi-10inch,dsi1,4lane`
 ### For Pi 5 with 10.1" panel:
 
 ```
-Pi 5 DSI Port ’ OSOYOO 10.1" Panel DSI connector
+Pi 5 DSI Port â€™ OSOYOO 10.1" Panel DSI connector
 ```
 
 Use: `dtoverlay=osoyoo-panel-dsi-10inch,dsi0,4lane`
