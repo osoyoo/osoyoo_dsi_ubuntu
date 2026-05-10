@@ -125,9 +125,10 @@ patch_driver_for_kernel() {
         fi
     elif [ "$needs_new_api" = false ] && [ "$current_api_is_new" = true ]; then
         echo "  -> Patching $src_file for kernel <6.17 (old GPIO API: void return)"
-        # Change int to void and remove return statement
+        # Change int to void and remove return statement ONLY in osoyoo_panel_gpio_set function
         sed -i 's/^static int osoyoo_panel_gpio_set/static void osoyoo_panel_gpio_set/' "$src_file"
-        sed -i '/^\s*return 0;$/d' "$src_file"
+        # Remove return 0; only within osoyoo_panel_gpio_set function (between function start and its closing brace)
+        sed -i '/^static void osoyoo_panel_gpio_set/,/^}/ { /^\s*return 0;$/d; }' "$src_file"
     fi
 }
 
