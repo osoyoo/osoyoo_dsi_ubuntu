@@ -11,6 +11,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
+			clock-frequency = <10000>;
 
 			display_mcu: display_mcu@45
 			{
