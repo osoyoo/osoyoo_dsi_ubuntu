@@ -3,6 +3,7 @@
 #include <linux/err.h>
 #include <linux/gpio.h>
 #include <linux/gpio/driver.h>
+#include <linux/i2c.h>
 #include <linux/module.h>
 #include <linux/regmap.h>
 #include <linux/regulator/driver.h>
@@ -68,7 +69,8 @@ static int osoyoo_panel_update_status(struct backlight_device *bl)
 	struct regmap *regmap = bl_get_data(bl);
 	int brightness = bl->props.brightness;
 
-	if (bl->props.power != FB_BLANK_UNBLANK || bl->props.state & (BL_CORE_SUSPENDED | BL_CORE_FBBLANK))
+	/* Kernel 7.0+ removed FB_BLANK_* constants, check power state differently */
+	if (bl->props.power != 0 || bl->props.state & (BL_CORE_SUSPENDED | BL_CORE_FBBLANK))
 		brightness = 0;
 
 	return regmap_write(regmap, REG_PWM, brightness | PWM_BL_ENABLE);

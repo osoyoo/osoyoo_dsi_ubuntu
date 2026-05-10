@@ -25,6 +25,7 @@ fi
 detect_hardware() {
     local pi_model="unknown"
     local os_distro="unknown"
+    local os_version="unknown"
     local kernel_version=$(uname -r)
     local arch=$(uname -m)
 
@@ -55,7 +56,7 @@ detect_hardware() {
         esac
     fi
 
-    # Detect OS Distribution
+    # Detect OS Distribution and Version
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         case "$ID" in
@@ -63,9 +64,71 @@ detect_hardware() {
             ubuntu) os_distro="ubuntu" ;;
             *) os_distro="$ID" ;;
         esac
+        os_version="$VERSION_ID"
     fi
 
-    echo "$pi_model|$os_distro|$kernel_version|$arch"
+    echo "$pi_model|$os_distro|$os_version|$kernel_version|$arch"
+}
+
+# Kernel version comparison function
+# Returns: 0 if kernel >= target version, 1 otherwise
+kernel_version_gte() {
+    local current_kernel="$1"
+    local target_major="$2"
+    local target_minor="${3:-0}"
+
+    # Extract major and minor version from kernel string (e.g., "6.17.0-rpi8" -> 6, 17)
+    local kernel_major=$(echo "$current_kernel" | cut -d'.' -f1)
+    local kernel_minor=$(echo "$current_kernel" | cut -d'.' -f2 | sed 's/[^0-9].*//')
+
+    # Compare versions
+    if [ "$kernel_major" -gt "$target_major" ]; then
+        return 0
+    elif [ "$kernel_major" -eq "$target_major" ] && [ "$kernel_minor" -ge "$target_minor" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Automatic driver code patching based on kernel version
+patch_driver_for_kernel() {
+    local src_file="$1"
+    local kernel_ver="$2"
+    local needs_new_api=false
+
+    # Check if kernel >= 6.17 (new GPIO API required)
+    if kernel_version_gte "$kernel_ver" 6 17; then
+        needs_new_api=true
+    fi
+
+    # Check current API in the file
+    local current_api_is_new=false
+    if grep -q "^static int osoyoo_panel_gpio_set" "$src_file" 2>/dev/null; then
+        current_api_is_new=true
+    fi
+
+    # Patch if mismatch
+    if [ "$needs_new_api" = true ] && [ "$current_api_is_new" = false ]; then
+        echo "  -> Patching $src_file for kernel 6.17+ (new GPIO API: int return)"
+        # Change void to int and add return 0
+        sed -i 's/^static void osoyoo_panel_gpio_set/static int osoyoo_panel_gpio_set/' "$src_file"
+        # Make sure there's a return statement before the closing brace
+        if ! grep -q "return 0;" "$src_file"; then
+            # Add return 0; before the last closing brace in the function
+            sed -i '/^static int osoyoo_panel_gpio_set/,/^}/ {
+                /^}/ {
+                    i\
+\	return 0;
+                }
+            }' "$src_file"
+        fi
+    elif [ "$needs_new_api" = false ] && [ "$current_api_is_new" = true ]; then
+        echo "  -> Patching $src_file for kernel <6.17 (old GPIO API: void return)"
+        # Change int to void and remove return statement
+        sed -i 's/^static int osoyoo_panel_gpio_set/static void osoyoo_panel_gpio_set/' "$src_file"
+        sed -i '/^\s*return 0;$/d' "$src_file"
+    fi
 }
 
 # Install dependencies
@@ -93,17 +156,27 @@ echo "✓ Dependencies installed"
 echo ""
 
 # Detect hardware
-echo "Detecting hardware..."
+echo "Detecting hardware and OS..."
 HARDWARE_INFO=$(detect_hardware)
 PI_MODEL=$(echo "$HARDWARE_INFO" | cut -d'|' -f1)
 OS_DISTRO=$(echo "$HARDWARE_INFO" | cut -d'|' -f2)
-KERNEL_VERSION=$(echo "$HARDWARE_INFO" | cut -d'|' -f3)
-ARCH=$(echo "$HARDWARE_INFO" | cut -d'|' -f4)
+OS_VERSION=$(echo "$HARDWARE_INFO" | cut -d'|' -f3)
+KERNEL_VERSION=$(echo "$HARDWARE_INFO" | cut -d'|' -f4)
+ARCH=$(echo "$HARDWARE_INFO" | cut -d'|' -f5)
 
 echo "  Raspberry Pi Model: $PI_MODEL"
-echo "  OS Distribution: $OS_DISTRO"
+echo "  OS Distribution: $OS_DISTRO $OS_VERSION"
 echo "  Kernel Version: $KERNEL_VERSION"
 echo "  Architecture: $ARCH"
+
+# Determine GPIO API requirement
+if kernel_version_gte "$KERNEL_VERSION" 6 17; then
+    echo "  GPIO API: New (kernel >= 6.17, int return type)"
+    GPIO_API="new"
+else
+    echo "  GPIO API: Old (kernel < 6.17, void return type)"
+    GPIO_API="old"
+fi
 echo ""
 
 # Check if model-specific sources exist
@@ -151,6 +224,12 @@ cp "$SOURCE_DIR/osoyoo-panel-dsi-7inch.dts" "${SRC_BASE}/"
 cp "$SOURCE_DIR/osoyoo-panel-dsi-10inch.dts" "${SRC_BASE}/"
 
 echo "✓ Files copied"
+echo ""
+
+# Apply kernel-specific patches
+echo "Applying kernel-specific patches..."
+patch_driver_for_kernel "${SRC_BASE}/osoyoo-panel-regulator.c" "$KERNEL_VERSION"
+echo "✓ Kernel compatibility patches applied"
 echo ""
 
 # Add to DKMS
@@ -224,10 +303,22 @@ echo "=========================================="
 echo "Installation Complete!"
 echo "=========================================="
 echo ""
-echo "Hardware Configuration:"
+echo "System Configuration:"
 echo "  Model: $PI_MODEL"
+echo "  OS: $OS_DISTRO $OS_VERSION"
 echo "  Kernel: $KERNEL_VERSION"
+echo "  GPIO API: $GPIO_API"
 echo ""
+
+# Version compatibility warnings
+if [ "$OS_DISTRO" = "ubuntu" ]; then
+    UBUNTU_VER_MAJOR=$(echo "$OS_VERSION" | cut -d'.' -f1)
+    if [ -n "$UBUNTU_VER_MAJOR" ] && [ "$UBUNTU_VER_MAJOR" -ge 26 ]; then
+        echo "NOTE: Ubuntu 26.04+ detected. Driver automatically adapted for your kernel."
+        echo ""
+    fi
+fi
+
 echo "Next Steps:"
 echo "1. Edit your config file:"
 echo "   sudo nano /boot/firmware/config.txt"
