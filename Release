@@ -6,13 +6,13 @@ Version: 1.0
 Architectures: all arm64 armhf
 Components: main
 Description: OSOYOO DSI Panel Driver Repository for Raspberry Pi
-Date: Sun, 10 May 2026 23:50:46 +0000
+Date: Mon, 11 May 2026 00:31:30 +0000
 MD5Sum:
- 8a0b72160da00825e2fdc467a8339c86  Packages
- 00c6452c262ef2b63030cc1ea2b10d0b  Packages.gz
+ 6bed3d3775dee6b2f54094e105d55777  Packages
+ a77c14e7253cc379c4acca3d32eda17d  Packages.gz
 SHA1:
- 510a4528e6c47bdd19b37e76e9a49a93feef5e1f  Packages
- 188000bfcca0d8c19259a10bc8003bfa8782920e  Packages.gz
+ 433f7e3e7dc82b501af0a6f4ec89b5d217ff796f  Packages
+ b418f4994f6f20e2b8ea5cdb82b07a30822542ef  Packages.gz
 SHA256:
- 976ac87dc138ebbc228468b79783cee6c89d83694b280f972424122e388ad6e5  Packages
- eddae2234bcbe84f8f8ef3f81eec5f2ac8c3a3fe697091cfa23854f6480e2d1b  Packages.gz
+ 0f88c5e33d2dcb9019e640db9f07162b36c524284af481b2874a5dbd411fd752  Packages
+ 69e236eae68000675157a7af11cd10cd289280cf5e51bf5611739d38065112a0  Packages.gz
