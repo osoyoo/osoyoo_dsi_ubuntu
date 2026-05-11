@@ -12,6 +12,9 @@
 			#size-cells = <0>;
 			status = "okay";
 			clock-frequency = <100000>;
+			i2c-scl-rising-time-ns = <300>;
+			i2c-scl-falling-time-ns = <300>;
+			i2c-sda-hold-time-ns = <500>;
 
 			display_mcu: display_mcu@45
 			{
