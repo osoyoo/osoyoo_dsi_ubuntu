@@ -18,7 +18,7 @@ Pre-configured driver for OSOYOO DSI panels on Ubuntu 24.04+ for Raspberry Pi 5 
 ## Features
 
 ✓ **Auto-detects kernel version** and patches driver for GPIO API compatibility (supports both <6.17 and >=6.17)
-✓ **Auto-detects Ubuntu version** (24.04, 25.10, 26.04+) and adapts installation
+✓ **Auto-detects Ubuntu version** (25.10, 26.04+) and adapts installation
 ✓ **Automatic Ubuntu overlay path handling** (`/boot/firmware/current/overlays/`)
 ✓ **Future-proof**: Works with upcoming Ubuntu versions automatically
  No manual code editing required
