@@ -1,6 +1,7 @@
 # OSOYOO DSI Panel Driver for Ubuntu
 #OSOYOO 10.1" DSI/Mipi Raspberry Pi touchscreen purchase link:
 https://osoyoo.store/products/osoyoo-10-1-ips-dsi-touchscreen-display-for-raspberry-pi-5-4-3-2
+
 Pre-configured driver for OSOYOO DSI panels on Ubuntu 24.04+ for Raspberry Pi 5 / CM5.
 
 **This repository contains Ubuntu-compatible driver sources with all necessary patches already applied. No manual code editing required!**
