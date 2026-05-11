@@ -82,8 +82,8 @@
 				reg = <1>;
 				compatible = "regulator-fixed";
 				regulator-name = "touch_reg_1";
-				gpio = <&display_mcu 1 1>;
-				startup-delay-us = <50000>;
+				gpio = <&display_mcu 1 0>;
+				startup-delay-us = <100000>;
 				enable-active-high;
 			};
 		};
