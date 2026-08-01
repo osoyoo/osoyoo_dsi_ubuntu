@@ -112,6 +112,10 @@
 		       <&i2c_frag>, "target:0=",<&i2c_csi_dsi0>,
 		       <&touch_reg>, "reg:0=0",
 		       <&touch_reg>, "regulator-name=touch_reg_0";
+		dsi1 = <&dsi_frag>, "target:0=",<&dsi1>,
+		       <&i2c_frag>, "target:0=",<&i2c_csi_dsi1>,
+		       <&touch_reg>, "reg:0=1",
+		       <&touch_reg>, "regulator-name=touch_reg_1";
 		sizex = <&gt9271>,"touchscreen-size-x:0";
 		sizey = <&gt9271>,"touchscreen-size-y:0";
 		invx = <0>, "+10";

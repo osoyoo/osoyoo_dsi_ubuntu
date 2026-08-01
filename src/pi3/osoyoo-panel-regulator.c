@@ -7,6 +7,7 @@
 #include <linux/module.h>
 #include <linux/regmap.h>
 #include <linux/regulator/driver.h>
+#include <linux/version.h>
 
 #define REG_ID		0x01
 #define REG_POWERON	0x02
@@ -39,13 +40,21 @@ static int osoyoo_panel_gpio_get_direction(struct gpio_chip *gc, unsigned int of
 	return GPIO_LINE_DIRECTION_OUT;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
+static int osoyoo_panel_gpio_set(struct gpio_chip *gc, unsigned int off, int val)
+#else
 static void osoyoo_panel_gpio_set(struct gpio_chip *gc, unsigned int off, int val)
+#endif
 {
 	struct osoyoo_panel_lcd *state = gpiochip_get_data(gc);
 	u8 last_val;
 
 	if (off >= NUM_GPIO)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
+		return 0;
+#else
 		return;
+#endif
 
 	mutex_lock(&state->lock);
 
@@ -60,6 +69,9 @@ static void osoyoo_panel_gpio_set(struct gpio_chip *gc, unsigned int off, int va
 	regmap_write(state->regmap, REG_POWERON, last_val);
 
 	mutex_unlock(&state->lock);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
+	return 0;
+#endif
 }
 
 static int osoyoo_panel_update_status(struct backlight_device *bl)

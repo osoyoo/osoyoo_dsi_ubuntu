@@ -21,6 +21,19 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Optional panel argument. Used only to print the matching config.txt line at the end;
+# the driver and both overlays are installed either way.
+#   sudo ./install-direct.sh 7inch    -> 7" (720x1280) panel
+#   sudo ./install-direct.sh 10inch   -> 10.1" (800x1280) panel
+PANEL_ARG="${1:-}"
+case "$PANEL_ARG" in
+    7|7in|7inch|7-inch)                   PANEL_SIZE="7inch" ;;
+    10|10in|10inch|10-inch|10.1|10.1inch) PANEL_SIZE="10inch" ;;
+    "")                                   PANEL_SIZE="" ;;
+    *) echo "Note: unknown panel '$PANEL_ARG' (expected 7inch or 10inch); continuing anyway."
+       PANEL_SIZE="" ;;
+esac
+
 # Hardware detection function
 detect_hardware() {
     local pi_model="unknown"
@@ -227,11 +240,9 @@ cp "$SOURCE_DIR/osoyoo-panel-dsi-10inch.dts" "${SRC_BASE}/"
 echo "✓ Files copied"
 echo ""
 
-# Apply kernel-specific patches
-echo "Applying kernel-specific patches..."
-patch_driver_for_kernel "${SRC_BASE}/osoyoo-panel-regulator.c" "$KERNEL_VERSION"
-echo "✓ Kernel compatibility patches applied"
-echo ""
+# The driver source is version-guarded (LINUX_VERSION_CODE >= KERNEL_VERSION(6,17,0)),
+# so it compiles correctly on both the old (void) and new (int) GPIO set-callback API
+# with no source patching needed.
 
 # Add to DKMS
 echo "Adding module to DKMS..."
@@ -320,30 +331,41 @@ if [ "$OS_DISTRO" = "ubuntu" ]; then
     fi
 fi
 
-echo "Next Steps:"
-echo "1. Edit your config file:"
-echo "   sudo nano /boot/firmware/config.txt"
-echo "   (or /boot/config.txt on older systems)"
-echo ""
-echo "2. Add the following configuration:"
+echo "Next Steps  (full table in README.md):"
+echo "1. Edit the boot config:  sudo nano /boot/firmware/config.txt"
 echo ""
 if [ "$OS_DISTRO" = "ubuntu" ]; then
-    echo "   For Ubuntu, make sure to set:"
+    echo "2. On Ubuntu, make sure these are set:"
     echo "     display_auto_detect=0"
     echo "     dtparam=i2c_arm_baudrate=100000"
     echo ""
+    STEP=3
+else
+    STEP=2
 fi
-echo "   Then add ONE of these overlay lines:"
-echo "   For 7\" panel:"
-echo "     dtoverlay=osoyoo-panel-dsi-7inch"
+echo "${STEP}. Add the dtoverlay for your panel as the LAST line of config.txt:"
 echo ""
-echo "   For 10.1\" panel on DSI1 (CM5 most common):"
-echo "     dtoverlay=osoyoo-panel-dsi-10inch,dsi1,4lane"
+if [ "$PANEL_SIZE" = "7inch" ]; then
+    echo "     dtoverlay=osoyoo-panel-dsi-7inch"
+elif [ "$PANEL_SIZE" = "10inch" ]; then
+    case "$PI_MODEL" in
+        pi5)
+            echo "     # CM5 / Pi 5 - match the DSI port the panel is plugged into:"
+            echo "     dtoverlay=osoyoo-panel-dsi-10inch,dsi1,4lane   # DSI1 (most common)"
+            echo "     dtoverlay=osoyoo-panel-dsi-10inch,dsi0,4lane   # DSI0"
+            ;;
+        *)
+            echo "     # Pi 4 / Pi 3 / CM4:"
+            echo "     dtoverlay=osoyoo-panel-dsi-10inch"
+            ;;
+    esac
+else
+    echo "     7\" 720x1280:                        dtoverlay=osoyoo-panel-dsi-7inch"
+    echo "     10.1\" 800x1280 (Pi 4 / Pi 3 / CM4): dtoverlay=osoyoo-panel-dsi-10inch"
+    echo "     10.1\" 800x1280 (CM5 / Pi 5, DSI1):  dtoverlay=osoyoo-panel-dsi-10inch,dsi1,4lane"
+    echo "     10.1\" 800x1280 (CM5 / Pi 5, DSI0):  dtoverlay=osoyoo-panel-dsi-10inch,dsi0,4lane"
+fi
 echo ""
-echo "   For 10.1\" panel on DSI0:"
-echo "     dtoverlay=osoyoo-panel-dsi-10inch,dsi0,4lane"
-echo ""
-echo "3. Reboot your Raspberry Pi:"
-echo "   sudo reboot"
+echo "$((STEP+1)). Reboot:  sudo reboot"
 echo ""
 echo "=========================================="
