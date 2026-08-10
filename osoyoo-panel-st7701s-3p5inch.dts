@@ -1,3 +1,16 @@
+/*
+ * OSOYOO 3.5" 480x800 Raspberry Pi MIPI-DSI panel (ST7701S, 2-lane).
+ *
+ * Same overlay topology as the shipping 7"/10" OSOYOO DSI panels:
+ *   display_mcu@45  - STM32 acting as reset gpio-controller + backlight
+ *   gt911@5d        - Goodix capacitive touch
+ * Only the panel compatible and the touch size/dimensions differ.
+ *
+ * Build:   dtc -@ -I dts -O dtb -o osoyoo-panel-st7701s-3p5inch.dtbo \
+ *              osoyoo-panel-st7701s-3p5inch.dts
+ * Enable:  dtoverlay=osoyoo-panel-st7701s-3p5inch         (DSI1, default)
+ *          dtoverlay=osoyoo-panel-st7701s-3p5inch,dsi0    (DSI0)
+ */
 
 /dts-v1/;
 /plugin/;
@@ -11,13 +24,8 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
-			clock-frequency = <100000>;
-			i2c-scl-rising-time-ns = <300>;
-			i2c-scl-falling-time-ns = <300>;
-			i2c-sda-hold-time-ns = <500>;
 
-			display_mcu: display_mcu@45
-			{
+			display_mcu: display_mcu@45 {
 				compatible = "osoyoo,touchscreen-panel-regulator";
 				reg = <0x45>;
 				gpio-controller;
@@ -28,17 +36,18 @@
 				compatible = "goodix,gt911";
 				reg = <0x5d>;
 				AVDD28-supply = <&touch_reg>;
-				touchscreen-size-x = <720>;
-				touchscreen-size-y = <1280>;
-				touchscreen-x-mm = <87>;
-				touchscreen-y-mm = <155>;
+				touchscreen-size-x = <480>;
+				touchscreen-size-y = <800>;
+				/* TP VA 45.36 x 75.8 mm per SPC_HZ-TFT035BI075-C021 */
+				touchscreen-x-mm = <45>;
+				touchscreen-y-mm = <76>;
 			};
 		};
 	};
 
 	dsi_frag: fragment@1 {
 		target = <&dsi1>;
-		__overlay__  {
+		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
@@ -51,9 +60,8 @@
 
 			dsi_panel: dsi_panel@0 {
 				reg = <0>;
-				compatible = "osoyoo,dsi-7inch";
+				compatible = "osoyoo,st7701s-3p5inch";
 				reset-gpio = <&display_mcu 0 0>;
-				backlight = <&display_mcu>;
 
 				port {
 					panel_in: endpoint {
@@ -85,8 +93,8 @@
 				reg = <1>;
 				compatible = "regulator-fixed";
 				regulator-name = "touch_reg_1";
-				gpio = <&display_mcu 1 0>;
-				startup-delay-us = <100000>;
+				gpio = <&display_mcu 1 1>;
+				startup-delay-us = <50000>;
 				enable-active-high;
 			};
 		};
