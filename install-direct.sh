@@ -162,6 +162,30 @@ if [ -n "$NEWEST_KMOD" ] && [ "$NEWEST_KMOD" != "$KREL" ]; then
   fi
 fi
 
+# Also catch the case where a newer kernel is only PENDING in apt (not yet
+# installed). On a fresh Ubuntu image the shipped kernel usually has a newer one
+# waiting, which unattended-upgrades installs on first boot; the next reboot then
+# switches to it AND finalizes/swaps the A/B boot slots — dropping a build made
+# for the current kernel. Best-effort (needs apt; the check itself needs no root).
+if command -v apt-get >/dev/null 2>&1; then
+  PENDING_KERNEL="$(apt-get --just-print upgrade 2>/dev/null | awk '/^Inst linux-image/{print $2" ("$3")"; exit}')"
+  if [ -n "$PENDING_KERNEL" ]; then
+    echo >&2
+    note "WARNING: a kernel upgrade is PENDING in apt: $PENDING_KERNEL"
+    note "unattended-upgrades will install it and the next reboot will switch to it,"
+    note "leaving these modules (built for '$KREL') unable to load."
+    note "STRONGLY recommended before installing the panel:"
+    note "    sudo apt-get update && sudo apt-get full-upgrade -y && sudo reboot"
+    note "then re-run this script once the system is settled on the new kernel."
+    if [ -t 0 ]; then
+      read -r -p "Continue for the current kernel anyway? [y/N] " pans
+      case "$pans" in [yY]|[yY][eE][sS]) : ;; *) die "Aborted — upgrade + reboot, then re-run." ;; esac
+    else
+      note "Non-interactive shell — continuing, but expect to re-run after the upgrade+reboot."
+    fi
+  fi
+fi
+
 # apt wrapper: wait up to 10 min for the dpkg/apt lock instead of failing.
 # A fresh Ubuntu image usually runs `unattended-upgrades` on first boot, which
 # holds /var/lib/dpkg/lock-frontend; without the timeout, apt aborts immediately.
@@ -251,6 +275,17 @@ sudo dtc -@ -I dts -O dtb -o "$OVERLAYS_DIR/$PANEL.dtbo" "$DTS_FILE" 2>/tmp/osoy
 }
 [ -s "$OVERLAYS_DIR/$PANEL.dtbo" ] || die "overlay .dtbo is missing or 0 bytes."
 note "Overlay built OK (dtc warnings, if any, are harmless)."
+
+# 7b. Mirror the overlay into EVERY other boot-slot overlays dir under $BOOT_DIR
+#     (Ubuntu A/B: e.g. new/overlays). A first-boot slot finalization or a
+#     kernel-update swap replaces the active slot; without a copy in the other
+#     slot, the overlay silently vanishes after reboot and the panel stays dark.
+for od in $(find "$BOOT_DIR" -maxdepth 2 -type d -name overlays 2>/dev/null); do
+  [ "$od" = "$OVERLAYS_DIR" ] && continue
+  if sudo cp -f "$OVERLAYS_DIR/$PANEL.dtbo" "$od/$PANEL.dtbo" 2>/dev/null; then
+    note "Mirrored overlay into $od (A/B boot-slot safety)."
+  fi
+done
 
 # --------------------------------------------------------------------------
 # 8. Set the dtoverlay= line in config.txt, idempotently
